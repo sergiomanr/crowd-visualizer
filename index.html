@@ -11,57 +11,138 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            background-color: #fff;
+            background-color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         #map {
             height: 100%;
             width: 100%;
-            filter: grayscale(100%) brightness(1.05);
-            /* Custom Map Pin Cursor */
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>') 16 32, crosshair;
+            filter: grayscale(100%) brightness(0.8);
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>') 16 32, crosshair;
         }
 
-        /* Ensure Leaflet doesn't override the cursor */
         .leaflet-container {
+            background: #000 !important;
             cursor: inherit !important;
+        }
+
+        .floating-island {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .floating-island.active {
+            display: flex;
+        }
+
+        .island-text {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .yes-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: transform 0.1s ease;
+        }
+
+        .yes-btn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
+    <div id="island" class="floating-island">
+        <div class="island-text">Are you sure?</div>
+        <button id="yes-btn" class="yes-btn">Yes</button>
+    </div>
+
     <script>
-        const savedCoordinates = [];
+        let lastClickedCoord = null;
+        let currentMarker = null;
+        const island = document.getElementById('island');
+        const yesBtn = document.getElementById('yes-btn');
+        const mapboxToken = "{{ MAPBOX_API }}";
 
         const map = L.map('map', {
             zoomControl: false,
             attributionControl: false
         }).setView([40.4168, -3.7038], 13);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19
+        // Mapbox Satellite Tiles
+        L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
+            maxZoom: 20,
+            tileSize: 512,
+            zoomOffset: -1
         }).addTo(map);
 
         map.on('click', function(e) {
-            const coord = {
-                lat: e.latlng.lat,
-                lng: e.latlng.lng,
-                timestamp: new Date().toISOString()
-            };
+            lastClickedCoord = e.latlng;
+            island.classList.add('active');
             
-            savedCoordinates.push(coord);
-            console.log('Coordinate saved:', coord);
-            
-            // Optional: visual feedback
-            L.circleMarker(e.latlng, {
-                radius: 5,
-                fillColor: "#000",
-                color: "#000",
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+
+            currentMarker = L.circleMarker(e.latlng, {
+                radius: 4,
+                fillColor: "#fff",
+                color: "#fff",
                 weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
+                opacity: 0.8,
+                fillOpacity: 0.5
             }).addTo(map);
+        });
+
+        yesBtn.addEventListener('click', async () => {
+            if (!lastClickedCoord) return;
+
+            const lat = lastClickedCoord.lat;
+            const lng = lastClickedCoord.lng;
+            
+            try {
+                const response = await fetch('/capture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ lat, lng }),
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    console.log('Image saved as:', result.filename);
+                    island.classList.remove('active');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Failed to capture image:', error);
+                alert('Request failed. Ensure the backend server is running.');
+            }
         });
     </script>
 </body>
