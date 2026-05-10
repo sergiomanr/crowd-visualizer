@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madrid Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            filter: grayscale(100%) brightness(1.05);
+            /* Custom Map Pin Cursor */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>') 16 32, crosshair;
+        }
+
+        /* Ensure Leaflet doesn't override the cursor */
+        .leaflet-container {
+            cursor: inherit !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        const savedCoordinates = [];
+
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([40.4168, -3.7038], 13);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        map.on('click', function(e) {
+            const coord = {
+                lat: e.latlng.lat,
+                lng: e.latlng.lng,
+                timestamp: new Date().toISOString()
+            };
+            
+            savedCoordinates.push(coord);
+            console.log('Coordinate saved:', coord);
+            
+            // Optional: visual feedback
+            L.circleMarker(e.latlng, {
+                radius: 5,
+                fillColor: "#000",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+        });
+    </script>
+</body>
+</html>
