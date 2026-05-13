@@ -9,23 +9,25 @@ from shapely.geometry import Point, Polygon
 
 # Load config
 WIDTH, HEIGHT = 1000, 800
-BG_IMAGE = None
+BG_IMAGE_PATH = 'map_bg.png'
 SHAPES = []
 POLYGONS = []
+TOTAL_BALLS = 500
 
 if os.path.exists('game_config.json'):
     with open('game_config.json', 'r') as f:
         config = json.load(f)
         SHAPES = config.get('shapes', [])
+        BG_IMAGE_PATH = config.get('bg_path', 'map_bg.png')
+        TOTAL_BALLS = config.get('ball_count', 1000)
         # Pre-create Shapely polygons for performance
         for s in SHAPES:
-            if len(s) >= 3:
+            # if len(s) >= 3:
                 POLYGONS.append(Polygon(s))
 
 # Constants
 CELL_SIZE = 25
 BALL_RADIUS = 1
-TOTAL_BALLS = 500
 
 # Initialize Pygame
 pygame.init()
@@ -34,8 +36,10 @@ pygame.display.set_caption("Crowd Visualizer - Madrid")
 clock = pygame.time.Clock()
 
 # Load Assets
-if os.path.exists('map_bg.png'):
-    BG_IMAGE = pygame.image.load('map_bg.png').convert()
+if os.path.exists(BG_IMAGE_PATH):
+    BG_IMAGE = pygame.image.load(BG_IMAGE_PATH).convert()
+else:
+    BG_IMAGE = None
 
 def check_dot_in_shapes(x, y):
     """
@@ -132,7 +136,7 @@ while True:
     # Draw the SHAPES list
     shape_surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     for shape in SHAPES:
-        if len(shape) > 2:
+        # if len(shape) > 2:
             pygame.draw.polygon(shape_surf, (0, 0, 0, 100), shape)
             pygame.draw.polygon(shape_surf, (255, 255, 255, 150), shape, 1)
     screen.blit(shape_surf, (0, 0))

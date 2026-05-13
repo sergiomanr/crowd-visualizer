@@ -7,9 +7,7 @@ import subprocess
 from flask import Flask, request, jsonify, render_template_string
 from dotenv import load_dotenv
 from prue import extract_green_and_white
-from shape import get_black_shapes_coordinates
-
-
+from prueba2 import get_black_shapes_coordinates
 
 load_dotenv()
 MAPBOX_API = os.getenv("MAPBOX_API")
@@ -18,7 +16,7 @@ app = Flask(__name__)
 
 def extract_shapes():
     extract_green_and_white(image_path="map_mask.png", output_path="final_black_and_white_2.jpg")
-    print("llefa")
+    print("Extracting shapes...")
     black_shapes = get_black_shapes_coordinates(image_path="final_black_and_white_2.jpg")
     return black_shapes
 
@@ -27,6 +25,7 @@ def capture():
     data = request.json
     lat = data.get('lat')
     lng = data.get('lng')
+    ball_count = data.get('ballCount', 1000)
 
     if not MAPBOX_API:
         return jsonify({"error": "MAPBOX_API key not found"}), 500
@@ -34,8 +33,11 @@ def capture():
     # 1. Fetch Satellite Image for background
     sat_url = f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{lng},{lat},15,0/1000x800?access_token={MAPBOX_API}"
     # 2. Fetch Street Image for shape extraction (Buildings are usually well-defined)
-    mask_url = f"https://api.mapbox.com/styles/v1/mapbox/light-v11/static/{lng},{lat},15,0/1000x800?access_token={MAPBOX_API}"
-
+    mask_url = (
+        f"https://api.mapbox.com/styles/v1/sergio321/cmp0epum7004001s70b56cut2/static/"
+        f"{lng},{lat},15,0/1000x800"
+        f"?access_token={MAPBOX_API}"
+    )
     try:
         sat_res = requests.get(sat_url)
         mask_res = requests.get(mask_url)
@@ -48,8 +50,8 @@ def capture():
         with open(bg_path, 'wb') as f:
             f.write(sat_res.content)
 
-        bg_path = "map_mask.png"
-        with open(bg_path, 'wb') as f:
+        mask_path = "map_mask.png"
+        with open(mask_path, 'wb') as f:
             f.write(mask_res.content)
 
         # Extract shapes from mask
@@ -59,7 +61,8 @@ def capture():
         config = {
             "bg_path": bg_path,
             "shapes": shapes,
-            "center": [400, 300]
+            "center": [400, 300],
+            "ball_count": int(ball_count)
         }
         with open('game_config.json', 'w') as f:
             json.dump(config, f)

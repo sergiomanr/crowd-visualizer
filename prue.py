@@ -24,7 +24,7 @@ def extract_green_and_white(image_path, output_path):
 
     # 4. Define the HSV range for "White"
     # White has any Hue (0-179), very low Saturation (0-40), and high Value/Brightness (200-255).
-    lower_white = np.array([0, 0, 250], dtype=np.uint8)
+    lower_white = np.array([0, 0, 249], dtype=np.uint8)
     upper_white = np.array([255, 255, 255], dtype=np.uint8)
     white_mask = cv2.inRange(hsv_image, lower_white, upper_white)
 

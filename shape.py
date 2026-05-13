@@ -46,76 +46,76 @@ def get_black_shapes_coordinates(image_path):
     # 4. Format the output into the requested list of lists
     all_black_shapes = []
     
-    # for contour in contours:
-    #     shape_points = []
-    #     # Epsilon determines how much to simplify. 
-    #     # A higher number means fewer points (blockier shapes).
-    #     epsilon = 0.0005 * cv2.arcLength(contour, True)
-    #     approx_contour = cv2.approxPolyDP(contour, epsilon, True)
-        
-    #     for point in approx_contour:
-    #         x, y = point[0]
-    #         shape_points.append((int(x), int(y)))
-    #     # Extract the x, y coordinates from the OpenCV contour format
-
-            
-    #     # Optional: Only keep shapes that are actual polygons (3 or more points)
-    #     # This helps filter out tiny 1-pixel noise dots in the image.
-    #     if len(shape_points) >= 3:
-    #         if cv2.contourArea(np.array(shape_points, dtype=np.int32)) > 200:
-    #             all_black_shapes.append(shape_points)
     for contour in contours:
         shape_points = []
+        # Epsilon determines how much to simplify. 
+        # A higher number means fewer points (blockier shapes).
+        epsilon = 0.0005 * cv2.arcLength(contour, True)
+        approx_contour = cv2.approxPolyDP(contour, epsilon, True)
         
-        # Extract the x, y coordinates from the OpenCV contour format
         for point in contour:
             x, y = point[0]
             shape_points.append((int(x), int(y)))
+        # Extract the x, y coordinates from the OpenCV contour format
+
             
         # Optional: Only keep shapes that are actual polygons (3 or more points)
         # This helps filter out tiny 1-pixel noise dots in the image.
-        if len(shape_points) >= 3:
-            all_black_shapes.append(shape_points)
+        # if len(shape_points) >= 3:
+        #     if cv2.contourArea(np.array(shape_points, dtype=np.int32)) > 100:
+        #         all_black_shapes.append(shape_points)
+    # for contour in contours:
+    #     shape_points = []
+        
+    #     # Extract the x, y coordinates from the OpenCV contour format
+    #     for point in contour:
+    #         x, y = point[0]
+    #         shape_points.append((int(x), int(y)))
+            
+    #     # Optional: Only keep shapes that are actual polygons (3 or more points)
+    #     # This helps filter out tiny 1-pixel noise dots in the image.
+        # if len(shape_points) >= 3:
+        all_black_shapes.append(shape_points)
     print("List is complete")
     return all_black_shapes
 
 
 # all_black_shapes = 
-# image_file = "final_black_and_white_2.jpg" # Replace with your image name
+image_file = "final_black_and_white_2.jpg" # Replace with your image name
     
     
 
-# all_black_shapes = get_black_shapes_coordinates(image_file)
-# tamaños = []
-# for i in all_black_shapes:
-#     tamaños.append(len(i))
+all_black_shapes = get_black_shapes_coordinates(image_file)
+tamaños = []
+for i in all_black_shapes:
+    tamaños.append(len(i))
 # print(cv2.contourArea(np.array(all_black_shapes[4], dtype=np.int32)))
 # --- Visualization ---
-# pygame.init()
-# width, height = 1300, 800
-# screen = pygame.display.set_mode((width, height))
-# pygame.display.set_caption("Shape Visualization")
+pygame.init()
+width, height = 1000, 800
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Shape Visualization")
 
-# while True:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             pygame.quit()
-#             sys.exit()
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
 
-#     # Draw background (white)
-#     screen.fill((200, 200, 200))
+    # Draw background (white)
+    screen.fill((200, 200, 200))
 
-#     # Draw black shapes
-#     for shape in all_black_shapes:
-#         if cv2.contourArea(np.array(shape, dtype=np.int32)) < 200:
-#             continue
-#         else:
-#             # pygame.draw.polygon takes a list of (x, y) tuples
-#             pygame.draw.polygon(screen, (0, 0, 0), shape)
-#             # Draw outline to make them clearer
-#             pygame.draw.polygon(screen, (50, 50, 50), shape, 2)
+    # Draw black shapes
+    for shape in all_black_shapes:
+        if cv2.contourArea(np.array(shape, dtype=np.int32)) < 200:
+            continue
+        else:
+            # pygame.draw.polygon takes a list of (x, y) tuples
+            pygame.draw.polygon(screen, (0, 0, 0), shape)
+            # Draw outline to make them clearer
+            pygame.draw.polygon(screen, (50, 50, 50), shape, 2)
 
-#     # Draw red dot
-#     pygame.draw.circle(screen, (255, 0, 0), red_dot, 5)
+    # Draw red dot
+    pygame.draw.circle(screen, (255, 0, 0), red_dot, 5)
 
-#     pygame.display.flip()
+    pygame.display.flip()
